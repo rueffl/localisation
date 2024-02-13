@@ -27,7 +27,7 @@ function w_out = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,l,delt
     c = 2*delta*(vr)^2/(v0*l);
     mat = -O-1i*c.*iK; 
 
-    %w_out = eigs(mat,1,'smallestreal'); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fouier. Taking the smallest eigenvalues corresponds to n = 0.
+    %w_out = eigs(mat,1,'smallestreal'); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fourier. Taking the smallest eigenvalues corresponds to n = 0.
     w_out = eig(mat);
     [x, I] = min(abs(real(w_out)));
     w_out = w_out(I);

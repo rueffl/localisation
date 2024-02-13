@@ -28,10 +28,11 @@ function Ci = getC(k_tr,i,w,Omega,rs,ks,vr)
     Bi = diag(b_1,-1)+diag(b0)+diag(b1,1);
 
 %   build A (eq28)
-    a_1 = ones(2*k_tr,1)*rs(i,1);
-    a0 = ones(2*k_tr+1,1)*rs(i,2);
-    a1 = ones(2*k_tr,1)*rs(i,3);
-    Ai = diag(a_1,-1)+diag(a0)+diag(a1,1);
+%     a_1 = ones(2*k_tr,1)*rs(i,1);
+%     a0 = ones(2*k_tr+1,1)*rs(i,2);
+%     a1 = ones(2*k_tr,1)*rs(i,3);
+%     Ai = diag(a_1,-1)+diag(a0)+diag(a1,1);
+    Ai = eye(2*k_tr+1);
 
 %   compute C
     Ci = Ai\Bi;

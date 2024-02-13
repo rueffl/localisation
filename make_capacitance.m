@@ -1,5 +1,5 @@
 function C = make_capacitance(N,lij,alpha,L)
-      C = zeros(N);
+    C = zeros(N);
     for i = 1:N
             for j = 1: N
                 if i == j - 1

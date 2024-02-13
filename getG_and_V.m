@@ -30,7 +30,7 @@ function [Gnj,Vnj] = getG_and_V(xm,xp,n,k_tr,rs,fis,list_lambdas)
             1i*lambda*exp(1i*lambda*xp(i)) -1i*lambda*exp(-1i*lambda*xp(i))];
         Gnj(2*i-1:2*i,2*i-1:2*i) = Gi;
         Vi = sum*[exp(1i*lambda*xm(i)) exp(-1i*lambda*xm(i));
-                             exp(1i*lambda*xp(i)) exp(-1i*lambda*xp(i))];
+                             exp(1i*lambda*xp(i)) exp(-1i*lambda*xp(i))]; % it used to be fi(k_tr+1+n)*... instead of sum*...
         Vnj(2*i-1:2*i,2*i-1:2*i) = Vi;        
     end
 end
