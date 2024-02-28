@@ -12,7 +12,13 @@
 % 
 
 function w_out = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr)
-    GCM = delta*vr^2*diag(1./li)*C;
+
+    if length(vr) == 1
+        N = length(li);
+        vr = ones(1,N).*vr;
+    end
+
+    GCM = delta*diag(vr)^2*diag(1./li)*C;
 
     M = 1; % Number of Fourier coefficients of 1/\kappa
     N = size(GCM,1);
@@ -47,7 +53,7 @@ function w_out = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,del
         ik = inv(k);
         iK(Ii,Ii) = ik; %% Fourier coefficients of \kappa
         if (i == 1) || (i == N)
-            KD(Ii,Ii) = d*delta*vr^2/(v0*li(i))*ik;
+            KD(Ii,Ii) = d*delta*vr(i)^2/(v0*li(i))*ik;
         end
     end
 
