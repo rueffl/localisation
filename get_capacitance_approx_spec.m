@@ -11,7 +11,7 @@
 % \omega \psi_2 = - n\Omega \psi_2 - 1i*GCM*\psi_1 - 1i*D*\kappa*psi_2
 % 
 
-function w_out = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr)
+function [w_out, v_out] = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr)
 
     if length(vr) == 1
         N = length(li);
@@ -60,6 +60,7 @@ function w_out = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,del
     Z = zeros(NN*N);
     mat = -[kron(IN,O), Z; Z, kron(IN,O)]  - 1i*[Z, iK; -kron(GCM,INN), KD]; % Kroenecker product to get the RHS matrix
 
-    w_out = eig(mat);%,2*N,'smallestabs'); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fouier. Taking the smallest eigenvalues corresponds to n = 0.
-    w_out = sort(mink(w_out,2*N));
+    [v_out, w_out] = eig(mat);%,2*N,'smallestabs'); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fouier. Taking the smallest eigenvalues corresponds to n = 0.
+    [w_out, idx] = mink(w_out,2*N);
+    v_out = v_out(idx);
 end
