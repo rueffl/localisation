@@ -1,9 +1,10 @@
 clear all
+format long
 
 % Settings for the structure
-k_tr = 4; % truncation parameters as in remark 3.3
-N = 2; % number of the resonators inside the unit cell
-inft = 15; % number of reoccuring unit cells to simmulate an infinite material
+k_tr = 1; % truncation parameters as in remark 3.3
+N = 3; % number of the resonators inside the unit cell
+inft = 11; % number of reoccuring unit cells to simmulate an infinite material
 N_tot = N*inft; % total number of resonators
 spacing = 2; pre_lij = ones(1,N-1).*spacing; %pre_lij(1:2:end) = 1; % spacing between the resonators
 lij = repmat([pre_lij,pre_lij(end)],1,inft-1); lij = [lij,pre_lij];
@@ -39,8 +40,8 @@ for i = 1:(N-1)
     phase_kappa(i+1) = pi/i;
     phase_rho(i+1) = pi/i;
 end
-epsilon_kappa = 0.4; % modulation amplitude of kappa
-epsilon_rho = 0.6; % modulation amplitude of rho
+epsilon_kappa = 0; % modulation amplitude of kappa
+epsilon_rho = 0; % modulation amplitude of rho
 rs = []; % Fourier coefficients of 1/rho
 ks = []; % Fourier coefficients of 1/kappa
 for j = 1:N
@@ -54,71 +55,66 @@ rs = repmat(rs,inft,1);
 phase_kappa = repmat(phase_kappa,1,inft);
 phase_rho = repmat(phase_rho,1,inft);
 
-figure()
-hold on
-plot(0,0,'b*')
-for i = 1:N_tot
-    plot([xm(i),xp(i)],zeros(1,2),'r-')
-end
-for i = 1:inft
-    plot(i*L,0,'b*')
-end
+% figure()
+% hold on
+% plot(0,0,'b*')
+% for i = 1:N_tot
+%     plot([xm(i),xp(i)],zeros(1,2),'r-')
+% end
+% for i = 1:inft
+%     plot(i*L,0,'b*')
+% end
 
 
 %% Compute the subwavelength resonant frequencies and eigenmodes for the static case
-
-if N_tot > 1
-    C = make_capacitance_finite(N_tot,lij); % capacitance matrix
-    [w_cap, v_cap] = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); % subwavelength resonant frequencies
-else
-    w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,len,delta,vr,v0);
-end
-% w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
-
-fig = figure()
-hold on
-for i = 1:length(v_cap)
-    plot(1:2*N_tot,v_cap(:,i),'-','LineWidth',1, 'color', [.5 .5 .5])
-end
-legend 
-xlabel('$i$','fontsize',18,'Interpreter','latex')
-ylabel('$v_i$','fontsize',18,'Interpreter','latex')
 
 % generalised capacitance matrix
 C = make_capacitance_finite(N_tot,lij); % capacitance matrix
 GCM = delta*diag(vr)^2*diag(1./li)*C;
 [V,w_res] = eig(GCM);
+w_res = diag(w_res); w_res = sqrt(w_res); w_res_neg = (-1).*w_res; w_res = [w_res;w_res_neg];
+V_neg = (-1).*V; V = [V,V_neg];
+
+if N_tot > 1
+    C = make_capacitance_finite(N_tot,lij); % capacitance matrix
+    [w_cap, v_cap] = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); % subwavelength resonant frequencies
+else
+    w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,len,delta,vr,v0); % subwavelength resonant frequencies
+end
+% w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
+% v_cap = v_cap(k_tr+1:2*k_tr+1:end,:); v_cap = v_cap(1:N_tot,:); v_cap_neg = (-1).*v_cap; v_cap = [v_cap,v_cap_neg];
+w_cap = diag(w_cap); %w_cap = w_cap(real(w_cap)>=0);
+% Find the correct indexing of v_cap
+% v_cap_new = [];
+% for i = 1:2*N_tot
+%     nnz_idx = find(abs(v_cap(:,i))>10^(-7));
+%     v_temp = v_cap(nnz_idx,i);
+%     v_cap_new = [v_cap_new,v_temp(1:N_tot)];
+% end
+% v_cap_neg = (-1).*v_cap_new; v_cap = [v_cap_new,v_cap_neg];
+v_cap = v_cap(1:N_tot*(2*k_tr+1),:);
+
+
+fig = figure()
+hold on
+for i = 1:size(v_cap,2)
+    plot(1:length(v_cap(:,i)),v_cap(:,i),'-','LineWidth',1, 'color', [.5 .5 .5])
+end
+legend 
+xlabel('$i$','fontsize',18,'Interpreter','latex')
+ylabel('$v_i$','fontsize',18,'Interpreter','latex')
 
 % plot eigenvectors
 fig = figure()
 hold on
 for i = 1:length(V)
-    plot(1:length(V),V(:,i),'-','DisplayName',['$\omega=$ ', num2str(w_res(i, i))],'LineWidth',1, 'color', [.5 .5 .5])
+    plot(1:(length(V)/2),V(:,i),'-','DisplayName',['$\omega=$ ', num2str(w_res(i))],'LineWidth',1, 'color', [.5 .5 .5])
 end
 legend 
 xlabel('$i$','fontsize',18,'Interpreter','latex')
 ylabel('$v_i$','fontsize',18,'Interpreter','latex')
-close(fig)
-
-
-%% Compute the subwavelength resonant frequencies and eigenmodes for the time-modulated case
-
-rhot = @(t) 1./(1+epsilon_rho*cos(Omega*t+phase_rho));
-sqrtkappat = @(t) sqrt(1./(1+epsilon_kappa*cos(Omega*t+phase_kappa)));
-w3 = @(t) Omega.^2.*epsilon_kappa.*(epsilon_kappa.*sin(Omega*t+phase_kappa).^2+2.*epsilon_kappa.*cos(Omega*t+phase_kappa).^2+2.*cos(Omega*t+phase_kappa))/(2*(epsilon_kappa.*cos(Omega*t+phase_kappa)+1).^(3/2));
-
-C = make_capacitance_finite(N_tot,lij); % capacitance matrix
-M = @(t) makeM(t, delta, vr,li, C, rhot, sqrtkappat, w3);
-[TOUT, X_bloch,V_mode,V,D] = Hill2BlochModes(M,T,100);
-
-% plot eigenmodes
-figure()
-hold on
-m = 1; % fix time
-for n = 1:2*N_tot
-    plot(1:2*N_tot,(reshape(X_bloch(m,n,:),[1,size(X_bloch(m,n,:),3)])),'-','LineWidth',1, 'color', [.5 .5 .5])
-end
-
+title('Static','fontsize',18,'Interpreter','latex')
+% close(fig)
 
 
 
