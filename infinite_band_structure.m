@@ -4,9 +4,13 @@ clear all
 k_tr = 4; % truncation parameters as in remark 3.3
 N = 3; % number of the resonator
 spacing = 2; lij = ones(1,N).*spacing; lij(1:2:end) = 1; % spacing between the resonators
+perturbation = 0.2; lij(2) = lij(2)-perturbation; lij(3) = lij(3)+perturbation; % add a spatial perturbation
 len = 1; li = ones(1,N).*len; % length of the resonator
 L = sum(li)+sum(lij); % length of the unit cell
-xm = [0,li(1:end-1)+lij(1:end-1)]; % left boundary points of the resonators
+xm = [lij(end)/2]; % left boundary points of the resonators
+for i = 2:N
+    xm = [xm,xm(end)+li(i-1)+lij(i-1)];
+end
 xp = xm + li; % right boundary points of the resonators
 delta = 0.0001; % small contrast parameter
 
@@ -49,7 +53,7 @@ for j = 1:sample_points
         C = make_capacitance(N,lij,alpha,L); % capacitance matrix
         w_cap = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); % subwavelength resonant frequencies
     else
-        w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,len,delta,vr,v0);
+        w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,li,delta,vr,v0);
     end
     w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
     ws_cap(:,j) = w_cap;
@@ -61,15 +65,30 @@ for j = 1:sample_points
 
 end
 
-figure()
+omega_real = real(ws_cap_new);
+omega_imag = imag(ws_cap_new);
+
+% figure()
 hold on
 for i = 1:2*N
-    plot(alphas,real(ws_cap(i,:)),'r.',markersize=8,linewidth=2)
-    plot(alphas,real(ws_cap_new(i,:)),'g-',markersize=8,linewidth=2)
+    plot(alphas,omega_real(i,:),'k.',markersize=8,linewidth=2)
+    plot(alphas,omega_imag(i,:),'g.',markersize=8,linewidth=2)
+%     if i == 3
+%         plot(alphas(41:end),omega_imag(i,41:end),'r.',markersize=8,linewidth=2)
+%     elseif i == 4
+%         plot(alphas(1:40),omega_imag(i,1:40),'r.',markersize=8,linewidth=2)
+%     else
+%         plot(alphas,omega_imag(i,:),'r.',markersize=8,linewidth=2)
+%     end
 end
-xlabel('$\alpha$',fontsize=18,interpreter='latex')
-ylabel('$\omega_i$',fontsize=18,interpreter='latex')
-
+% xlabel('$\alpha$',fontsize=18,interpreter='latex')
+% ylabel('$\omega_i^{\alpha}$',fontsize=18,interpreter='latex')
+% 
+% fill([-0.448798950512828,-0.448798950512828,0.448798950512828,0.448798950512828],[0.0077425,0.0105167,0.0105167,0.0077425],[0.6350 0.0780 0.1840],'FaceAlpha',0.1,'EdgeColor','none');
+% fill([-0.005681,-0.005681,0.232921,0.232921],[-5*10^(-3),20*10^(-3),20*10^(-3),-5*10^(-3)],[0 0.4470 0.7410],'FaceAlpha',0.1,'EdgeColor','none');
+% 
+% xlim([alphas(1),alphas(end)])
+% ylim([-0.002,0.017])
 
 %% Test the function whose roots must be determined
 
