@@ -3,7 +3,7 @@ format long
 
 % Settings for the structure
 k_tr = 1; % truncation parameters as in remark 3.3
-N = 3; % number of the resonators inside the unit cell
+N = 2; % number of the resonators inside the unit cell
 inft = 11; % number of reoccuring unit cells to simmulate an infinite material
 N_tot = N*inft; % total number of resonators
 spacing = 2; pre_lij = ones(1,N-1).*spacing; %pre_lij(1:2:end) = 1; % spacing between the resonators
