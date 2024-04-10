@@ -41,7 +41,7 @@ for i = 1:(N-1)
     phase_rho(i+1) = pi/i;
 end
 epsilon_kappa = 0; % modulation amplitude of kappa
-epsilon_rho = 0; % modulation amplitude of rho
+epsilon_rho = 0.8; % modulation amplitude of rho
 rs = []; % Fourier coefficients of 1/rho
 ks = []; % Fourier coefficients of 1/kappa
 for j = 1:N
@@ -77,44 +77,45 @@ V_neg = (-1).*V; V = [V,V_neg];
 
 if N_tot > 1
     C = make_capacitance_finite(N_tot,lij); % capacitance matrix
-    [w_cap, v_cap] = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); % subwavelength resonant frequencies
+%     [w_cap, v_cap] = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); 
+    [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C); % subwavelength resonant frequencies
 else
     w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,len,delta,vr,v0); % subwavelength resonant frequencies
 end
-% w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
-% v_cap = v_cap(k_tr+1:2*k_tr+1:end,:); v_cap = v_cap(1:N_tot,:); v_cap_neg = (-1).*v_cap; v_cap = [v_cap,v_cap_neg];
 w_cap = diag(w_cap); %w_cap = w_cap(real(w_cap)>=0);
-% Find the correct indexing of v_cap
-% v_cap_new = [];
-% for i = 1:2*N_tot
-%     nnz_idx = find(abs(v_cap(:,i))>10^(-7));
-%     v_temp = v_cap(nnz_idx,i);
-%     v_cap_new = [v_cap_new,v_temp(1:N_tot)];
-% end
-% v_cap_neg = (-1).*v_cap_new; v_cap = [v_cap_new,v_cap_neg];
-v_cap = v_cap(1:N_tot*(2*k_tr+1),:);
+v_cap_rev = [];
+for j = 1:2*N_tot
+    for i = 1:N_tot
+        v_cap_rev(i,j) = sum(abs(v_cap((i-1)*(2*k_tr+1)+1:i*(2*k_tr+1),j)).^2);
+    end
+end
+V_abs = abs(V).^2;
 
 
 fig = figure()
 hold on
 for i = 1:size(v_cap,2)
-    plot(1:length(v_cap(:,i)),v_cap(:,i),'-','LineWidth',1, 'color', [.5 .5 .5])
+    plot(1:length(v_cap_rev(:,i)),v_cap_rev(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5])
 end
-legend 
+% legend 
 xlabel('$i$','fontsize',18,'Interpreter','latex')
 ylabel('$v_i$','fontsize',18,'Interpreter','latex')
+xlim([1,length(v_cap_rev(:,i))])
+dim = [0.2 0.671111111111111 0.203633567216567 0.128888888888889];
+str = {['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa)],['$\varepsilon_{\rho}=$ ',num2str(epsilon_rho)]};
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',18);
 
 % plot eigenvectors
 fig = figure()
 hold on
-for i = 1:length(V)
-    plot(1:(length(V)/2),V(:,i),'-','DisplayName',['$\omega=$ ', num2str(w_res(i))],'LineWidth',1, 'color', [.5 .5 .5])
+for i = 1:length(V_abs)
+    plot(1:(length(V_abs)/2),V_abs(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5],'DisplayName',['$\omega=$ ', num2str(w_res(i))])
 end
-legend 
+% legend 
 xlabel('$i$','fontsize',18,'Interpreter','latex')
 ylabel('$v_i$','fontsize',18,'Interpreter','latex')
 title('Static','fontsize',18,'Interpreter','latex')
-% close(fig)
+xlim([1,length(v_cap_rev(:,i))])
 
 
 
