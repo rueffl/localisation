@@ -1,4 +1,4 @@
-function [w_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C)
+function [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C)
 %GET_CAPACITANCE_APPROX_RHOKAPPA Computes the capacitance matrix approximation
 %   Omega:          frequency of kappa_i and rho_i
 %   epsilon_kappa:  modulation amplitude of kappa
@@ -21,9 +21,9 @@ function [w_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_r
 %     [eigvals, V] = hill_exp(T,matrixM,N);
 %     w_cap = sort(mink(eigvals,2*N));
 
-    GCM = delta*diag(1./li)*C;
+    GCM = delta*diag(vr)^2*diag(1./li)*C;
 
-    M = 1; % Number of Fourier coefficients of 1/\kappa
+    M = k_tr; % Number of Fourier coefficients of 1/\kappa
     N = size(GCM,1);
     
     R_mod = zeros(2*M+1,N);
@@ -60,6 +60,10 @@ function [w_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_r
     Z = zeros(NN*N);
     mat = -[kron(IN,O), Z; Z, kron(IN,O)]  - 1i*[Z, iK; -iRcR, Z]; % Kroenecker product to get the RHS matrix
 
-    w_cap = sort(eigs(mat,2*N,'smallestabs'),'ComparisonMethod','real'); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fouier. Taking the smallest eigenvalues corresponds to n = 0.
+%     w_cap = sort(eigs(mat,2*N,'smallestabs'),'ComparisonMethod','real'); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fouier. Taking the smallest eigenvalues corresponds to n = 0.
+
+    [v_out, w_out] = eig(mat); % The eigenvalues of "mat" are approximately \omega + n\Omega for |n| < N_fouier. Taking the smallest eigenvalues corresponds to n = 0.
+    [w_out, idx] = mink(diag(w_out),2*N);
+    v_cap = v_out(:,idx); w_cap = diag(w_out);
 
 end
