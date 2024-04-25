@@ -41,7 +41,7 @@ for i = 1:(N-1)
     phase_rho(i+1) = pi/i;
 end
 epsilon_kappa = 0; % modulation amplitude of kappa
-epsilon_rho = 0.8; % modulation amplitude of rho
+epsilon_rho = 0; % modulation amplitude of rho
 rs = []; % Fourier coefficients of 1/rho
 ks = []; % Fourier coefficients of 1/kappa
 for j = 1:N
@@ -54,7 +54,7 @@ ks = repmat(ks,inft,1);
 rs = repmat(rs,inft,1);
 phase_kappa = repmat(phase_kappa,1,inft);
 phase_rho = repmat(phase_rho,1,inft);
-
+% 
 % figure()
 % hold on
 % plot(0,0,'b*')
@@ -77,7 +77,6 @@ V_neg = (-1).*V; V = [V,V_neg];
 
 if N_tot > 1
     C = make_capacitance_finite(N_tot,lij); % capacitance matrix
-%     [w_cap, v_cap] = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); 
     [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C); % subwavelength resonant frequencies
 else
     w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,len,delta,vr,v0); % subwavelength resonant frequencies
@@ -91,7 +90,12 @@ for j = 1:2*N_tot
 end
 V_abs = abs(V).^2;
 
+V_norms = zeros(1,2*N_tot);
+for i = 1:2*N_tot
+    V_norms(i) = norm(V_abs(:,i));
+end
 
+% plot eigenvectors
 fig = figure()
 hold on
 for i = 1:size(v_cap,2)
@@ -105,20 +109,33 @@ dim = [0.2 0.671111111111111 0.203633567216567 0.128888888888889];
 str = {['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa)],['$\varepsilon_{\rho}=$ ',num2str(epsilon_rho)]};
 annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',18);
 
-% plot eigenvectors
+% Check the static case without the ODE approximation formula
+% fig = figure()
+% hold on
+% for i = 1:length(V_abs)
+%     plot(1:(length(V_abs)/2),V_abs(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5],'DisplayName',['$\omega=$ ', num2str(w_res(i))])
+% end
+% % legend 
+% xlabel('$i$','fontsize',18,'Interpreter','latex')
+% ylabel('$v_i$','fontsize',18,'Interpreter','latex')
+% title('Static','fontsize',18,'Interpreter','latex')
+% xlim([1,length(v_cap_rev(:,i))])
+
+% plot eigenvalues \omega
 fig = figure()
+% hold on
+% subplot(2,2,4)
 hold on
-for i = 1:length(V_abs)
-    plot(1:(length(V_abs)/2),V_abs(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5],'DisplayName',['$\omega=$ ', num2str(w_res(i))])
-end
-% legend 
-xlabel('$i$','fontsize',18,'Interpreter','latex')
-ylabel('$v_i$','fontsize',18,'Interpreter','latex')
-title('Static','fontsize',18,'Interpreter','latex')
-xlim([1,length(v_cap_rev(:,i))])
-
-
-
+plot(real(w_cap),imag(w_cap),'*',LineWidth=2)
+plot(real(w_cap(13)),imag(w_cap(13)),'r*',LineWidth=2)
+% plot(real(w_cap(23)),imag(w_cap(23)),'r*',LineWidth=2)
+% plot(real(w_cap(25)),imag(w_cap(25)),'r*',LineWidth=2)
+% plot(real(w_cap(27)),imag(w_cap(27)),'r*',LineWidth=2)
+xlabel('Re($\omega$)',Interpreter='latex',FontSize=14)
+ylabel('Im($\omega$)',Interpreter='latex',FontSize=14)
+dim = [0.2 0.671111111111111 0.203633567216567 0.128888888888889];
+str = {['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa)],['$\varepsilon_{\rho}=$ ',num2str(epsilon_rho)]};
+annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',18);
 
 
 
