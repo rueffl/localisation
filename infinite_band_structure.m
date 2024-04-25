@@ -2,9 +2,9 @@ clear all
 
 % Settings for the structure
 k_tr = 4; % truncation parameters as in remark 3.3
-N = 3; % number of the resonator
-spacing = 2; lij = ones(1,N).*spacing; lij(1:2:end) = 1; % spacing between the resonators
-perturbation = 0.2; lij(2) = lij(2)-perturbation; lij(3) = lij(3)+perturbation; % add a spatial perturbation
+N = 2; % number of the resonator
+spacing = 2; lij = ones(1,N).*spacing;% lij(1:2:end) = 1; % spacing between the resonators
+% perturbation = 0.2; lij(2) = lij(2)-perturbation; lij(3) = lij(3)+perturbation; % add a spatial perturbation
 len = 1; li = ones(1,N).*len; % length of the resonator
 L = sum(li)+sum(lij); % length of the unit cell
 xm = [lij(end)/2]; % left boundary points of the resonators
@@ -16,6 +16,7 @@ delta = 0.0001; % small contrast parameter
 
 t = 0; % time
 vr = 1; % wave speed inside the resonators
+vr = ones(1,N).*vr; 
 v0 = 1; % wave speed outside the resonators
 
 % Settings for modulation
@@ -27,8 +28,8 @@ for i = 1:(N-1)
     phase_kappa(i+1) = pi/i;
     phase_rho(i+1) = pi/i;
 end
-epsilon_kappa = 0.4; % modulation amplitude of kappa
-epsilon_rho = 0.2; % modulation amplitude of rho
+epsilon_kappa = 0; % modulation amplitude of kappa
+epsilon_rho = 0; % modulation amplitude of rho
 rs = []; % Fourier coefficients of 1/rho
 ks = []; % Fourier coefficients of 1/kappa
 for j = 1:N
@@ -51,24 +52,24 @@ for j = 1:sample_points
     % find initial guess of the subwavelength quasifrequencies
     if N > 1
         C = make_capacitance(N,lij,alpha,L); % capacitance matrix
-        w_cap = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); % subwavelength resonant frequencies
+        [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C); % subwavelength resonant frequencies
     else
         w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,li,delta,vr,v0);
     end
-    w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
-    ws_cap(:,j) = w_cap;
+    w_res = w_cap(real(diag(w_cap))>=0); % positive subwavelength resonant frequencies
+    ws_cap(:,j) = diag(w_cap);
 
     % get the approximation through the new capacitance matrix approximation
     w_cap = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C);
-    w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
-    ws_cap_new(:,j) = w_cap;
+    w_res = w_cap(real(diag(w_cap))>=0); % positive subwavelength resonant frequencies
+    ws_cap_new(:,j) = diag(w_cap);
 
 end
 
 omega_real = real(ws_cap_new);
 omega_imag = imag(ws_cap_new);
 
-% figure()
+figure()
 hold on
 for i = 1:2*N
     plot(alphas,omega_real(i,:),'k.',markersize=8,linewidth=2)
@@ -127,7 +128,7 @@ for j = 1:sample_points
     % find initial guess of the subwavelength quasifrequencies
     if N > 1
         C = make_capacitance(N,lij,alpha,L); % capacitance matrix
-        w_cap = get_capacitance_approx_spec(epsilon_kappa,phase_kappa,Omega,delta,li,v0,vr,C,k_tr); % subwavelength resonant frequencies
+        [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C); % subwavelength resonant frequencies
     else
         w_cap = get_capacitance_approx_spec_im_N1_1D(epsilon_kappa,Omega,len,delta,vr,v0);
     end
@@ -148,13 +149,13 @@ for j = 1:sample_points
     end
     [vct,idx] = sort(real(w_muller(:,j)));
     w_muller(:,j) = w_muller(idx,j);
-    ws_cap(:,j) = w_cap;
+    ws_cap(:,j) = diag(w_cap);
 
     % get the approximation through the new capacitance matrix approximation
 %     w_cap = get_capacitance_approx_spec_rho(epsilon_kappa,phase_kappa,epsilon_rho,phase_rho,Omega,delta,li,C);
-    w_cap = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C);
+    [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,epsilon_rho,phase_kappa,phase_rho,vr,delta,li,k_tr,C); % subwavelength resonant frequencies
     w_res = w_cap(real(w_cap)>=0); % positive subwavelength resonant frequencies
-    ws_cap_new(:,j) = w_cap;
+    ws_cap_new(:,j) = diag(w_cap);
 
 end
 
