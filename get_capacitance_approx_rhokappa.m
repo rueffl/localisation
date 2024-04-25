@@ -23,7 +23,7 @@ function [w_cap,v_cap] = get_capacitance_approx_rhokappa(Omega,epsilon_kappa,eps
 
     GCM = delta*diag(vr)^2*diag(1./li)*C;
 
-    M = k_tr; % Number of Fourier coefficients of 1/\kappa
+    M = 1; % Number of Fourier coefficients of 1/\kappa
     N = size(GCM,1);
     
     R_mod = zeros(2*M+1,N);
