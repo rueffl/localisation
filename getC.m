@@ -42,6 +42,6 @@ end
 
 %   compute gamma (eq29)
 function gamma=make_gamma(n,i,m,w,Omega,ks,vr)
-    gamma = (w+(n-m)*Omega)*(w+n*Omega)*ks(i,m+2)/(vr^2);
+    gamma = (w+(n-m)*Omega)*(w+n*Omega)*ks(i,m+2)/(vr(i)^2);
 %     gamma = (w+(n-m)*Omega)/(w+n*Omega)*ks(i,m+2)*((w+n*Omega)/vr)^2;
 end
