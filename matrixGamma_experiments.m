@@ -1,4 +1,5 @@
 clear all
+format long
 
 % Settings for the structure
 k_tr = 4; % truncation parameters as in remark 3.3
@@ -27,8 +28,8 @@ for i = 1:(N-1)
     phase_kappa(i+1) = pi/i;
     phase_rho(i+1) = pi/i;
 end
-epsilon_kappa = 0.5; % modulation amplitude of kappa
-epsilon_rho = 0.2; % modulation amplitude of rho
+epsilon_kappa = 0.6; % modulation amplitude of kappa
+epsilon_rho = 0.4; % modulation amplitude of rho
 rs = []; % Fourier coefficients of 1/rho
 ks = []; % Fourier coefficients of 1/kappa
 for j = 1:N
@@ -38,17 +39,29 @@ for j = 1:N
     rs = [rs; rs_j];
 end
 
-all_ws = linspace(-Omega/2,Omega/2,1000);
-all_dets = zeros(1,length(all_ws));
+all_ws = linspace(-Omega/2,Omega/2,1000)';
+all_alphas = linspace(-pi/L,pi/L,1000)';
+all_dets = zeros(length(all_ws),length(all_alphas));
 
 for i = 1:length(all_ws)
-    Gamma = get_matrixGamma(epsilon_kappa,epsilon_rho,all_ws(i),Omega,1,k_tr);
-    all_dets(i) = det(Gamma);
+    for j = 1:length(all_alphas)
+        C = 2/spacing*(1-cos(all_alphas(j)*L));
+        Gamma = get_matrixGamma(epsilon_kappa,epsilon_rho,all_ws(i),Omega,C,k_tr);
+        all_dets(i,j) = svds(Gamma,1,"smallest");
+    end
 end
 
 % Create Plot
 figure()
 hold on
-plot(all_ws,all_dets,'-')
+s = surf(all_alphas,all_ws,all_dets)
+s.EdgeColor = 'none';
+xlabel('$\alpha$',Interpreter='latex')
+ylabel('$\omega$',Interpreter='latex')
 
-
+figure()
+hold on
+for j = 1:length(all_alphas)
+    plot(all_ws,all_dets(:,j),'-','DisplayName',strcat('$\alpha=$  ',num2str(all_alphas(j))))
+end
+% legend on

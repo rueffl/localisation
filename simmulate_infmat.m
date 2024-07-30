@@ -1,18 +1,27 @@
-clear all
+% clear all
 format long
 
 % Settings for the structure
 k_tr = 1; % truncation parameters as in remark 3.3
 N = 2; % number of the resonators inside the unit cell
-inft = 11; % number of reoccuring unit cells to simmulate an infinite material
+inft = 100; % number of reoccuring unit cells to simmulate an infinite material
 N_tot = N*inft; % total number of resonators
-spacing = 2; pre_lij = ones(1,N-1).*spacing; %pre_lij(1:2:end) = 1; % spacing between the resonators
-lij = repmat([pre_lij,pre_lij(end)],1,inft-1); lij = [lij,pre_lij];
+spacing = 2; 
+if N > 1
+    pre_lij = ones(1,N-1).*spacing; % spacing between the resonators
+    lij = repmat([pre_lij,pre_lij(end)],1,inft-1); lij = [lij,pre_lij];
+else
+    pre_lij = spacing;
+    lij = spacing.*ones(1,inft);
+end
 len = 1; pre_li = ones(1,N).*len; % length of the resonator
 li = repmat(pre_li,1,inft);
 
-
-L = sum(pre_li)+sum(pre_lij)+pre_lij(end); % length of the unit cell
+if N > 1
+    L = sum(pre_li)+sum(pre_lij)+pre_lij(end); % length of the unit cell
+else
+    L = pre_lij+len; % length of the unit cell
+end
 xm = [0]; % left boundary points of the resonators
 for i = 1:N_tot-1
     xm = [xm,xm(end)+li(i)+lij(i)];
@@ -54,7 +63,7 @@ ks = repmat(ks,inft,1);
 rs = repmat(rs,inft,1);
 phase_kappa = repmat(phase_kappa,1,inft);
 phase_rho = repmat(phase_rho,1,inft);
-% 
+
 % figure()
 % hold on
 % plot(0,0,'b*')
@@ -95,31 +104,44 @@ for i = 1:2*N_tot
     V_norms(i) = norm(V_abs(:,i));
 end
 
-% plot eigenvectors
-fig = figure()
-hold on
-for i = 1:size(v_cap,2)
-    plot(1:length(v_cap_rev(:,i)),v_cap_rev(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5])
+loc_measure = zeros(1,N_tot);
+for i = 1:N_tot
+    loc_measure(i) = norm(v_cap_rev(i,:),Inf)/norm(v_cap_rev(i,:),2);
 end
-% legend 
-xlabel('$i$','fontsize',18,'Interpreter','latex')
-ylabel('$v_i$','fontsize',18,'Interpreter','latex')
-xlim([1,length(v_cap_rev(:,i))])
-dim = [0.2 0.671111111111111 0.203633567216567 0.128888888888889];
-str = {['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa)],['$\varepsilon_{\rho}=$ ',num2str(epsilon_rho)]};
-annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',18);
+loc_idx = [];
+for i = 1:N_tot
+    if loc_measure(i) > (mean(loc_measure)+0.1)
+        loc_idx = [loc_idx,i];
+    end
+end
 
-% Check the static case without the ODE approximation formula
+% % plot eigenvectors
 % fig = figure()
 % hold on
-% for i = 1:length(V_abs)
-%     plot(1:(length(V_abs)/2),V_abs(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5],'DisplayName',['$\omega=$ ', num2str(w_res(i))])
+% for i = 1:size(v_cap,2)
+%     plot(1:length(v_cap_rev(:,i)),v_cap_rev(:,i),'-','LineWidth',1.2, 'color', [.5 .5 .5])
 % end
 % % legend 
 % xlabel('$i$','fontsize',18,'Interpreter','latex')
 % ylabel('$v_i$','fontsize',18,'Interpreter','latex')
-% title('Static','fontsize',18,'Interpreter','latex')
 % xlim([1,length(v_cap_rev(:,i))])
+% dim = [0.2 0.671111111111111 0.203633567216567 0.128888888888889];
+% str = {['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa)],['$\varepsilon_{\rho}=$ ',num2str(epsilon_rho)]};
+% annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',18);
+
+% plot degree of localisation
+figure(1)
+hold on
+plot(1:length(loc_measure),loc_measure,'*','LineWidth',1.2, 'color', [.8 .5 .8], ...
+    'DisplayName', ['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa),', $\varepsilon_{\rho}=$ ',num2str(epsilon_rho)])
+% labels 
+xlabel('$i$','fontsize',18,'Interpreter','latex')
+ylabel('$\frac{||v_i^{\alpha}||_{\infty}}{||v_i^{\alpha}||_2}$','fontsize',18,'Interpreter','latex','rotation',0)
+xlim([1,length(v_cap_rev(:,i))])
+dim = [0.2 0.671111111111111 0.203633567216567 0.128888888888889];
+% str = {['$\varepsilon_{\kappa}=$ ',num2str(epsilon_kappa)],['$\varepsilon_{\rho}=$ ',num2str(epsilon_rho)]};
+% annotation('textbox',dim,'String',str,'FitBoxToText','on','Interpreter','latex','FontSize',18);
+legend('Interpreter','latex','FontSize',14)
 
 % plot eigenvalues \omega
 fig = figure()
@@ -127,7 +149,8 @@ fig = figure()
 % subplot(2,2,4)
 hold on
 plot(real(w_cap),imag(w_cap),'*',LineWidth=2)
-plot(real(w_cap(13)),imag(w_cap(13)),'r*',LineWidth=2)
+plot(real(w_cap(loc_idx)),imag(w_cap(loc_idx)),'r*',LineWidth=2)
+% plot(real(w_cap(13)),imag(w_cap(13)),'r*',LineWidth=2)
 % plot(real(w_cap(23)),imag(w_cap(23)),'r*',LineWidth=2)
 % plot(real(w_cap(25)),imag(w_cap(25)),'r*',LineWidth=2)
 % plot(real(w_cap(27)),imag(w_cap(27)),'r*',LineWidth=2)

@@ -1,10 +1,11 @@
-function [Gamma] = get_matrixGamma(epsilon_kappa,epsilon_rho,w_res,Omega,C)
+function [Gamma] = get_matrixGamma(epsilon_kappa,epsilon_rho,w_res,Omega,C,k_tr)
 %UNTITLED6 Summary of this function goes here
 %   epsilon_kappa:  modulation amplitude of kappa
 %   epsilon_rho:    modulation amplitude of rho
 %   w_res:          resonant frequency
 %   Omega:          modulation frequency
 %   C:              capacitance matrix
+%   k_tr:           truncation parameter
 
     gm2 = zeros(2*k_tr+1,1);
     gm1 = zeros(2*k_tr+1,1);
@@ -20,6 +21,6 @@ function [Gamma] = get_matrixGamma(epsilon_kappa,epsilon_rho,w_res,Omega,C)
         gp2(n+k_tr+1) = epsilon_kappa*epsilon_rho*0.25*(w_res+(n+2)*Omega)^2-Omega*epsilon_kappa*epsilon_rho*0.25*(w_res+(n+2)*Omega);
     end
 
-    Gamma = diag(gp2,2)+diag(gp1,1)+diag(g0)+diag(gm1,-1)+diag(gm2,-2);
+    Gamma = diag(gp2(3:end),2)+diag(gp1(2:end),1)+diag(g0)+diag(gm1(1:end-1),-1)+diag(gm2(1:end-2),-2);
 
 end
