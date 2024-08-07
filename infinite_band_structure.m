@@ -1,8 +1,8 @@
-clear all
+format long
 
 % Settings for the structure
 k_tr = 4; % truncation parameters as in remark 3.3
-N = 2; % number of the resonator
+N = 4; % number of the resonator
 spacing = 2; lij = ones(1,N).*spacing;% lij(1:2:end) = 1; % spacing between the resonators
 % perturbation = 0.2; lij(2) = lij(2)-perturbation; lij(3) = lij(3)+perturbation; % add a spatial perturbation
 len = 1; li = ones(1,N).*len; % length of the resonator
@@ -40,8 +40,8 @@ for j = 1:N
 end
 
 % Band functions computation
-sample_points = 80;
-alphas = linspace(-pi/L,pi/L,sample_points);
+sample_points = 1;
+alphas = 0.05;
 ws_cap = zeros(2*N,sample_points);
 ws_cap_new = zeros(2*N,sample_points);
 
